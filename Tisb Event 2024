@@ -1,0 +1,160 @@
+'''
+This code creates a simple game where a player-controlled square moves around the screen and collects randomly placed circles.
+Each time the square collides with a circle, the score increases by 1, and the circle is repositioned to a random location on the screen.
+The score is displayed at the top left of the screen.
+The game runs at 60 frames per second, and the player square cannot move off the screen.
+The game continues until the window is closed
+'''
+
+# Import the necessary modules
+import pygame
+import sys
+import random
+
+# Initialize Pygame
+pygame.init()
+
+# Set up some constants for the screen size and frames per second
+WIDTH, HEIGHT = 640, 480
+FPS = 60
+
+# Set up the display
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+
+# Set up the clock, which will be used to control the frame rate
+clock = pygame.time.Clock()
+
+# Load the player's sprite
+player_image = pygame.image.load(r'C:\Users\Acer\Desktop\coadev\Python Projects\car game\New folder\starter_car.png')
+player_pos = [WIDTH // 2, HEIGHT // 2]
+player_speed = 5
+
+# Load the circle's sprite
+circle_image = pygame.image.load(r'C:\Users\Acer\Desktop\coadev\Python Projects\car game\New folder\nut.png')
+circle_pos = [random.randint(circle_image.get_width() // 2, WIDTH - circle_image.get_width() // 2), random.randint(circle_image.get_height() // 2, HEIGHT - circle_image.get_height() // 2)]
+
+# Load the green circle's sprite
+green_circle_image = pygame.image.load(r'C:\Users\Acer\Desktop\coadev\Python Projects\car game\New folder\rust.png')
+green_circle_pos = [random.randint(green_circle_image.get_width() // 2, WIDTH - green_circle_image.get_width() // 2), random.randint(green_circle_image.get_height() // 2, HEIGHT - green_circle_image.get_height() // 2)]
+
+# Set up the score and the font to display it
+score = 0
+font = pygame.font.Font(None, 36)
+
+# Function to draw the player on the screen
+def draw_player():
+    screen.blit(player_image, player_pos)
+
+# Function to draw the circle on the screen
+def draw_circle():
+    screen.blit(circle_image, circle_pos)
+
+# Function to draw the green circle on the screen
+def draw_green_circle():
+    screen.blit(green_circle_image, green_circle_pos)
+
+# Function to display the score on the screen
+def draw_score():
+    score_text = font.render("Score: " + str(score), 1, (255, 255, 255))
+    screen.blit(score_text, (10, 10))
+
+# Function to check if the player and the circle collide
+def check_collision(rect1, rect2):
+    return rect1.colliderect(rect2)
+
+# Function to display the end game text
+def display_end_game():
+    end_text = font.render("Game Over! Press Y to restart or N to quit", 1, (255, 255, 255))
+    screen.blit(end_text, (WIDTH // 2 - end_text.get_width() // 2, HEIGHT // 2 - end_text.get_height() // 2))
+
+# Function to display the intro screen
+def display_intro_screen():
+    intro_text = ["Welcome to the Nut Collector Game!",
+                  "Rules:",
+                  "1) Collect the normal nuts and not the rusted nuts",
+                  "2) If the rusted nuts are collected the game ends",
+                  "3) When the games ends please click 'y' or 'n' according to your choice",
+                  "4) To start click the spacebar"]
+    for i, line in enumerate(intro_text):
+        text = font.render(line, 1, (255, 255, 255))
+        screen.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 - text.get_height() // 2 + i*40))
+
+# The main game loop
+def main():
+    global score
+    running = True
+    game_over = False
+    intro_screen = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_SPACE] and intro_screen:
+            intro_screen = False
+        elif keys[pygame.K_y] and game_over:
+            game_over = False
+            score = 0
+            player_pos[0] = WIDTH // 2
+            player_pos[1] = HEIGHT // 2
+            circle_pos[0] = random.randint(circle_image.get_width() // 2, WIDTH - circle_image.get_width() // 2)
+            circle_pos[1] = random.randint(circle_image.get_height() // 2, HEIGHT - circle_image.get_height() // 2)
+            green_circle_pos[0] = random.randint(green_circle_image.get_width() // 2, WIDTH - green_circle_image.get_width() // 2)
+            green_circle_pos[1] = random.randint(green_circle_image.get_height() // 2, HEIGHT - green_circle_image.get_height() // 2)
+        elif keys[pygame.K_n] and game_over:
+            running = False
+
+        if not game_over and not intro_screen:
+            if keys[pygame.K_LEFT] and player_pos[0] - player_speed > 0:
+                player_pos[0] -= player_speed
+            if keys[pygame.K_RIGHT] and player_pos[0] + player_speed < WIDTH - player_image.get_width():
+                player_pos[0] += player_speed
+            if keys[pygame.K_UP] and player_pos[1] - player_speed > 0:
+                player_pos[1] -= player_speed
+            if keys[pygame.K_DOWN] and player_pos[1] + player_speed < HEIGHT - player_image.get_height():
+                player_pos[1] += player_speed
+
+            player_rect = pygame.Rect(player_pos[0], player_pos[1], player_image.get_width(), player_image.get_height())
+            circle_rect = pygame.Rect(circle_pos[0], circle_pos[1], circle_image.get_width(), circle_image.get_height())
+            green_circle_rect = pygame.Rect(green_circle_pos[0], green_circle_pos[1], green_circle_image.get_width(), green_circle_image.get_height())
+
+            if check_collision(player_rect, circle_rect):
+                score += 1
+                circle_pos[0] = random.randint(circle_image.get_width() // 2, WIDTH - circle_image.get_width() // 2)
+                circle_pos[1] = random.randint(circle_image.get_height() // 2, HEIGHT - circle_image.get_height() // 2)
+                green_circle_pos[0] = random.randint(green_circle_image.get_width() // 2, WIDTH - green_circle_image.get_width() // 2)
+                green_circle_pos[1] = random.randint(green_circle_image.get_height() // 2, HEIGHT - green_circle_image.get_height() // 2)
+
+            if check_collision(player_rect, green_circle_rect):
+                game_over = True
+
+            # Fill the screen with black
+            screen.fill((0, 0, 0))
+
+            # Draw the player, the circle, and the score
+            draw_player()
+            draw_circle()
+            draw_green_circle()
+            draw_score()
+        elif intro_screen:
+            # Fill the screen with black
+            screen.fill((0, 0, 0))
+
+            # Display the intro screen
+            display_intro_screen()
+        else:
+            display_end_game()
+
+        # Update the display
+        pygame.display.flip()
+
+        # Cap the frame rate
+        clock.tick(FPS)
+
+    pygame.quit()
+    sys.exit()
+
+# Run the game
+if __name__ == "__main__":
+    main()
